@@ -1,5 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+import os
+
+host = os.getenv('HOST', '0.0.0.0')
+port = int(os.getenv('PORT', 8080))
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finance.db"
@@ -15,7 +19,6 @@ class Transaction(db.Model):
     date = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
 
 
-# Create all database tables
 with app.app_context():
     db.create_all()
 
@@ -24,7 +27,6 @@ with app.app_context():
 def index():
     transactions = Transaction.query.all()
 
-    # Calculate total profit/loss
     total_profit_loss: float = sum(
         transaction.amount if transaction.type == "income" else -transaction.amount
         for transaction in transactions
@@ -56,4 +58,4 @@ def remove_transaction(transaction_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host=host, port=port)
