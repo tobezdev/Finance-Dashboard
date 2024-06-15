@@ -11,12 +11,13 @@ from flask_login import (
 )
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+import uuid
 import yaml
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finance.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = "your_secret_key"
+app.config["SECRET_KEY"] = str(uuid.uuid4())
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -67,7 +68,7 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        hashed_password = generate_password_hash(password, method="sha256")
+        hashed_password = generate_password_hash(password)
         new_user = User(username=username, password=hashed_password)
         try:
             db.session.add(new_user)
