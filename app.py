@@ -51,7 +51,6 @@ def remove_transaction(transaction_id):
     transaction_to_delete = Transaction.query.get_or_404(transaction_id)
     db.session.delete(transaction_to_delete)
     db.session.commit()
-
     return redirect(url_for("index"))
 
 
