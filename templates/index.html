@@ -12,11 +12,11 @@
             background-image: url('https://files.horizon.pics/8e0dca44-3f64-4cfb-bef1-4ac61ce7528b?a=534&mime1=image&mime2=jpeg');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* Keeps the background fixed as the page scrolls */
+            background-attachment: fixed;
             color: #333;
             padding-top: 20px;
-            margin: 0; /* Remove default margin */
-            height: 100%; /* Ensure full height */
+            margin: 0;
+            height: 100%;
         }
 
         .container {
@@ -46,13 +46,35 @@
         .profit-loss-value {
             color: green;
         }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* Adjust dropdown behavior */
+        .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <div class="header">
+            <div>
+                <h3>Welcome, {{ current_user.username }}!</h3>
+            </div>
+            <div>
+                <a href="/guide" class="btn btn-info">Dashboard Guide</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+            </div>
+        </div>
+
         <div class="row">
-            <!-- Left Column for Total Profit/Loss and Add Item Section -->
             <div class="col-md-4">
                 <div class="card total-profit-loss">
                     <div class="card-body">
@@ -94,7 +116,6 @@
                 </div>
             </div>
 
-            <!-- Right Column for Transactions Table -->
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-body">
@@ -106,7 +127,7 @@
                                     <th>Amount</th>
                                     <th>Type</th>
                                     <th>Date</th>
-                                    <th></th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -117,9 +138,19 @@
                                     <td>{{ transaction.type }}</td>
                                     <td>{{ transaction.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                                     <td>
-                                        <form action="/remove/{{ transaction.id }}" method="POST">
-                                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                        </form>
+                                        <div class="dropdown">
+                                            <button class="btn btn-secondary dropdown-toggle" type="button"
+                                                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                                aria-expanded="false"></button>
+                                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                <form action="/remove/{{ transaction.id }}" method="POST">
+                                                    <button class="dropdown-item" type="submit">Remove transaction</button>
+                                                </form>
+                                                <button class="dropdown-item copy-text-btn">Copy transaction as text</button>
+                                                <button class="dropdown-item copy-json-btn">Copy transaction as JSON</button>
+                                                <button class="dropdown-item copy-yml-btn">Copy transaction as YML (YAML)</button>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -130,6 +161,48 @@
             </div>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.copy-text-btn').click(function () {
+                var description = $(this).closest('tr').find('td:first').text();
+                var amount = $(this).closest('tr').find('td:eq(1)').text();
+                var type = $(this).closest('tr').find('td:eq(2)').text();
+                var date = $(this).closest('tr').find('td:eq(3)').text();
+                var textToCopy = `Description: ${description}\nAmount: ${amount}\nType: ${type}\nDate: ${date}`;
+                navigator.clipboard.writeText(textToCopy);
+                alert('Transaction copied as text!');
+            });
+
+            $('.copy-json-btn').click(function () {
+                var description = $(this).closest('tr').find('td:first').text();
+                var amount = $(this).closest('tr').find('td:eq(1)').text();
+                var type = $(this).closest('tr').find('td:eq(2)').text();
+                var date = $(this).closest('tr').find('td:eq(3)').text();
+                var transactionJson = {
+                    "description": description,
+                    "amount": amount,
+                    "type": type,
+                    "date": date
+                };
+                var textToCopy = JSON.stringify(transactionJson, null, 2);
+                navigator.clipboard.writeText(textToCopy);
+                alert('Transaction copied as JSON!');
+            });
+
+            $('.copy-yml-btn').click(function () {
+                var description = $(this).closest('tr').find('td:first').text();
+                var amount = $(this).closest('tr').find('td:eq(1)').text();
+                var type = $(this).closest('tr').find('td:eq(2)').text();
+                var date = $(this).closest('tr').find('td:eq(3)').text();
+                var textToCopy = `description: ${description}\namount: ${amount}\ntype: ${type}\ndate: ${date}`;
+                navigator.clipboard.writeText(textToCopy);
+                alert('Transaction copied as YML!');
+            });
+        });
+    </script>
+
 </body>
 
 </html>
