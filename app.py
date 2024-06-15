@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
 
-host = os.getenv('HOST', '0.0.0.0')
-port = int(os.getenv('PORT', 8080))
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finance.db"
@@ -58,4 +56,4 @@ def remove_transaction(transaction_id):
 
 
 if __name__ == "__main__":
-    app.run(host=host, port=port)
+    app.run(host='127.0.0.1', port=80)
