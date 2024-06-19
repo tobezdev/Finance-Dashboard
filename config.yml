@@ -1,6 +1,10 @@
 
 
 server_host: "0.0.0.0"
-server_port: 8080
+# set to '0.0.0.0' to run on localhost and a local ip
+
+server_port: 80
+# http requests default to port 80
+
 debug_mode: false
 

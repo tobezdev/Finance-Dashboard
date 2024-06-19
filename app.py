@@ -14,14 +14,15 @@ from datetime import datetime
 import uuid
 import yaml
 
+
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///finance.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = str(uuid.uuid4())
 db = SQLAlchemy(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "login"
+login_mgr = LoginManager()
+login_mgr.init_app(app)
+login_mgr.login_view = "login"
 
 
 class User(UserMixin, db.Model):
@@ -44,7 +45,7 @@ with app.app_context():
     db.create_all()
 
 
-@login_manager.user_loader
+@login_mgr.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
@@ -57,6 +58,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
+            print(f"New successful login to account '{user.username}' from IP '{request.remote_addr}'.")
             return redirect(url_for("index"))
         else:
             return render_template("login.html", error="Invalid username or password")
@@ -81,6 +83,11 @@ def register():
                 error="Username already exists. Please choose a different one.",
             )
     return render_template("register.html")
+
+
+@app.route('/guide', methods=["GET"])
+def guide():
+    return render_template('guide.html')
 
 
 @app.route("/logout")
@@ -117,7 +124,7 @@ def add_transaction():
         user_id=current_user.id,
         description=description,
         amount=amount,
-        type=type,
+        type=type.capitalize(),
         date=date or datetime.now(),
     )
     db.session.add(new_transaction)
