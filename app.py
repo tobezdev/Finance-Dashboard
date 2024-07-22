@@ -13,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import uuid
 import yaml
+import os
 
 
 app = Flask(__name__)
@@ -144,7 +145,9 @@ def remove_transaction(transaction_id):
 
 
 if __name__ == "__main__":
-    with open('config.yml', 'r') as f:
+    dir = os.path.dirname(os.path.realpath(__file__))
+    file = os.path.join(dir, "config.yml")
+    with open(file, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
         host = config['server_host']
         port = config['server_port']
