@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import (
@@ -59,7 +59,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
-            print(f"New successful login to account '{user.username}' from IP '{request.remote_addr}'.")
+            print(f"New successful login to account '{user.username}' from IP: '{request.remote_addr}' .")
             return redirect(url_for("index"))
         else:
             return render_template("login.html", error="Invalid username or password")
