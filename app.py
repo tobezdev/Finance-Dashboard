@@ -11,6 +11,10 @@ from flask_login import (
 )
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+import smtplib
+import random
+import string
+import json
 import uuid
 import yaml
 import os
@@ -23,12 +27,13 @@ app.config["SECRET_KEY"] = str(uuid.uuid4())
 db = SQLAlchemy(app)
 login_mgr = LoginManager()
 login_mgr.init_app(app)
-login_mgr.login_view = "login"
+login_mgr.login_view = "login"  #pyright:ignore[reportAttributeAccessIssue]
 
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=True)
     password = db.Column(db.String(150), nullable=False)
 
 
@@ -72,7 +77,7 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, password=hashed_password)
+        new_user = User(username=username, password=hashed_password)   #pyright:ignore[reportCallIssue]
         try:
             db.session.add(new_user)
             db.session.commit()
@@ -84,6 +89,48 @@ def register():
                 error="Username already exists. Please choose a different one.",
             )
     return render_template("register.html")
+
+
+@app.route('/reset-password', methods=["GET", "POST"])
+def reset_password():
+    if request.method == "POST":
+        username = request.form["username"]
+        new_password = request.form["new_password"]
+        user = User.query.filter_by(username=username).first()
+        if user:
+            user.password = generate_password_hash(new_password)
+            db.session.commit()
+            return redirect(url_for("login"))
+        else:
+            return render_template("reset_password.html", error="User not found")
+    return render_template("reset_password.html")
+
+
+@app.route('/send-otp', methods=["POST"])
+def send_otp():
+    data = request.get_json()
+    if not data:
+        return json.dumps({"success": False, "message": "Invalid request data"})
+    username_email = data.get("username_email")
+    user = User.query.filter((User.username == username_email) | (User.email == username_email)).first()
+    if user:
+        otp = ''.join(random.choices(string.ascii_letters, k=8))
+
+        try:
+            smtp_client = smtplib.SMTP('smtp.gmail.com', 587)
+            smtp_client.starttls()
+            smtp_client.login('your_email@gmail.com', 'your_email_password')
+            smtp_client.sendmail(
+                from_addr='your_email@gmail.com', 
+                to_addrs=user.email, 
+                msg=f"Subject: Your OTP\n\nYour OTP is: {otp}"
+            )
+            smtp_client.quit()
+        except Exception as e:
+            return json.dumps({"success": False, "message": str(e)})
+
+        return json.dumps({"success": True})
+    return json.dumps({"success": False, "message": "User not found"})
 
 
 @app.route('/guide', methods=["GET"])
@@ -108,9 +155,7 @@ def index():
         for transaction in transactions
     ).__round__(2)
 
-    return render_template(
-        "index.html", transactions=transactions, total_profit_loss=total_profit_loss
-    )
+    return render_template("index.html", transactions=transactions, total_profit_loss=total_profit_loss)
 
 
 @app.route("/add", methods=["POST"])
@@ -122,11 +167,11 @@ def add_transaction():
     date_str = request.form.get("date")
     date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M") if date_str else None
     new_transaction = Transaction(
-        user_id=current_user.id,
-        description=description,
-        amount=amount,
-        type=type.capitalize(),
-        date=date or datetime.now(),
+        user_id=current_user.id,        #pyright:ignore[reportCallIssue]
+        description=description,        #pyright:ignore[reportCallIssue]
+        amount=amount,                  #pyright:ignore[reportCallIssue]
+        type=type.capitalize(),         #pyright:ignore[reportCallIssue]
+        date=date or datetime.now(),    #pyright:ignore[reportCallIssue]
     )
     db.session.add(new_transaction)
     db.session.commit()

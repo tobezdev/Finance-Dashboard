@@ -1,2 +1,8 @@
-instances/
-StripeInteraction.py
+pyvenv.cfg
+Include/
+Lib/
+Scripts/
+
+instance/
+*.db
+*.env
